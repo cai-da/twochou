@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抽奖系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            min-height: 100vh;
+            background: #f3f4f6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 32px 16px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            color: #1f2937;
+            margin-bottom: 32px;
+        }
+        
+        /* 充值按钮 */
+        .recharge-section {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+        
+        .btn-recharge {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .btn-recharge:hover {
+            background: #2563eb;
+        }
+        .btn-jiezhang {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-left: 10px;
+        }
+        
+        .btn-jiezhang:hover {
+            background: #2563eb;
+        }
+        
+        /* 金额显示 */
+        .amount-section {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+        
+        .amount-box {
+            background: white;
+            border-radius: 12px;
+            padding: 20px 32px;
+            text-align: center;
+            min-width: 140px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .amount-label {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .amount-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .amount-value.blue { color: #3b82f6; }
+        .amount-value.red { color: #ef4444; }
+        .amount-value.green { color: #10b981; }
+        .amount-value.yellow { color: #f59e0b; }
+        
+        /* 抽奖区域 */
+        .lottery-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .lottery-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #374151;
+            margin-bottom: 20px;
+        }
+        
+        .lottery-row {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .btn-lottery {
+            width: 72px;
+            height: 44px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-lottery.green {
+            background: #22c55e;
+            color: white;
+        }
+        
+        .btn-lottery.green:hover {
+            background: #16a34a;
+        }
+        
+        .btn-lottery.red {
+            background: #ef4444;
+            color: white;
+            cursor: not-allowed;
+        }
+        
+        /* 弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            min-width: 320px;
+            max-width: 90%;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            color: #1f2937;
+        }
+        
+        .modal-content {
+            margin-bottom: 20px;
+        }
+        
+        .modal-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        
+        .modal-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        .error-msg {
+            color: #ef4444;
+            font-size: 13px;
+            margin-top: 6px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        
+        .btn-outline {
+            background: white;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+        
+        .btn-outline:hover {
+            background: #f3f4f6;
+        }
+        
+        .result-text {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #1f2937;
+        }
+        
+        .result-bonus {
+            text-align: center;
+            font-size: 18px;
+            color: #ef4444;
+            margin-top: 8px;
+        }
+        
+        .balance-info {
+            text-align: center;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .balance-info span {
+            font-weight: bold;
+            color: #10b981;
+        }
+        
+        /* 重置按钮 */
+        .reset-section {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 10px;
+        }
+        
+        .btn-reset {
+            background: #6b7280;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .btn-reset:hover {
+            background: #4b5563;
+        }
+        
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>抽奖系统</h1>
+        
+        <!-- 充值按钮 -->
+        <div class="recharge-section">
+            <button class="btn-recharge" onclick="showPasswordModal('recharge')">充值</button>
+            <button class="btn-jiezhang" onclick="showPasswordModal('jiezhang')">结账</button>
+        </div>
+        
+        <!-- 金额显示 -->
+        <div class="amount-section">
+            <div class="amount-box">
+                <div class="amount-label">充值金额</div>
+                <div class="amount-value blue" id="rechargeAmount">0</div>
+            </div>
+            <div class="amount-box">
+                <div class="amount-label">中奖金额</div>
+                <div class="amount-value red" id="winAmount">0</div>
+            </div>
+            <div class="amount-box">
+                <div class="amount-label">余额</div>
+                <div class="amount-value green" id="balance">0</div>
+            </div>
+            <div class="amount-box">
+                <div class="amount-label">抽奖次数</div>
+                <div class="amount-value yellow" id="countme">0</div>
+            </div>
+        </div>
+        
+        <!-- 抽奖区域 -->
+        <div class="lottery-section">
+            <div class="lottery-title">抽奖区域</div>
+            <div id="lotteryGrid"></div>
+        </div>
+        
+        <!-- 重置按钮区域 -->
+        <div class="reset-section">
+            <button class="btn-reset" onclick="showPasswordModal('reset')">重置抽奖面板</button>
+            <button class="btn-danger" onclick="showPasswordModal('clear')">清空所有数据</button>
+        </div>
+    </div>
+    
+    <!-- 通用密码验证弹窗 -->
+    <div class="modal-overlay" id="passwordVerifyModal">
+        <div class="modal">
+            <div class="modal-title" id="passwordVerifyTitle">请输入密码</div>
+            <div class="modal-content">
+                <input type="password" class="modal-input" id="passwordVerifyInput" placeholder="请输入密码" onkeypress="if(event.key==='Enter')checkPasswordVerify()">
+                <div class="error-msg" id="passwordVerifyError"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('passwordVerifyModal')">取消</button>
+                <button class="btn btn-primary" onclick="checkPasswordVerify()">确认</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 金额弹窗 -->
+    <div class="modal-overlay" id="amountModal">
+        <div class="modal">
+            <div class="modal-title">请输入充值金额</div>
+            <div class="modal-content">
+                <input type="number" class="modal-input" id="amountInput" placeholder="请输入金额" onkeypress="if(event.key==='Enter')confirmRecharge()">
+                <div class="error-msg" id="amountError"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('amountModal')">取消</button>
+                <button class="btn btn-primary" onclick="confirmRecharge()">确认</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 结账弹窗 -->
+    <div class="modal-overlay" id="jiezhangModal">
+        <div class="modal">
+            <div class="modal-title">是否结账</div>
+            <div class="modal-content">
+                <div class="amount-label">当前余额为：</div>
+                <div class="amount-value green" id="balance2">0</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('jiezhangModal')">否</button>
+                <button class="btn btn-primary" onclick="confirmJiezhang()">是</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 余额不足弹窗 -->
+    <div class="modal-overlay" id="noBalanceModal">
+        <div class="modal">
+            <div class="modal-title">提示</div>
+            <div class="modal-content">
+                <p class="result-text">当前余额小于2元，无法抽奖</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeModal('noBalanceModal')">确定</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 抽奖确认弹窗 -->
+    <div class="modal-overlay" id="confirmLotteryModal">
+        <div class="modal">
+            <div class="modal-title">确认抽奖</div>
+            <div class="modal-content">
+                <p class="balance-info">当前余额：<span id="confirmBalance">0</span></p>
+                <p class="balance-info">是否花费 2 元进行抽奖？</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('confirmLotteryModal')">取消</button>
+                <button class="btn btn-primary" onclick="doLottery()">确认</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 抽奖结果弹窗 -->
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal">
+            <div class="modal-title">抽奖结果</div>
+            <div class="modal-content">
+                <p class="result-text" id="resultText"></p>
+                <p class="result-bonus" id="resultBonus"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeResult()">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 重置面板确认弹窗 -->
+    <div class="modal-overlay" id="resetModal">
+        <div class="modal">
+            <div class="modal-title">确认重置</div>
+            <div class="modal-content">
+                <p class="result-text">确定要重置抽奖面板吗？</p>
+                <p style="text-align: center; color: #6b7280; margin-top: 8px; font-size: 14px;">这将重新生成138个新的抽奖按钮，但保留金额数据</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('resetModal')">取消</button>
+                <button class="btn btn-primary" onclick="confirmReset()">确认</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 清空所有数据确认弹窗 -->
+    <div class="modal-overlay" id="clearAllModal">
+        <div class="modal">
+            <div class="modal-title">危险操作</div>
+            <div class="modal-content">
+                <p class="result-text" style="color: #dc2626;">确定要清空所有数据吗？</p>
+                <p style="text-align: center; color: #6b7280; margin-top: 8px; font-size: 14px;">这将重置所有金额和抽奖记录，此操作不可恢复！</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('clearAllModal')">取消</button>
+                <button class="btn btn-danger" onclick="confirmClearAll()">确认清空</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // LocalStorage 键名
+        const STORAGE_KEYS = {
+            RECHARGE: 'lottery_rechargeAmount',
+            WIN: 'lottery_winAmount',
+            BALANCE: 'lottery_balance',
+            COUNT: 'lottery_countme',
+            BUTTONS: 'lottery_buttons'
+        };
+        
+        // 密码常量
+        const PASSWORD = 'xxhg*';
+        
+        // 数据状态
+        let rechargeAmount = 0;
+        let winAmount = 0;
+        let balance = 0;
+        let countme = 0;
+        let lotteryButtons = [];
+        let selectedButtonId = null;
+        let currentResult = null;
+        let currentAction = null; // 当前正在进行的操作类型
+        
+        // 从 LocalStorage 加载数据
+        function loadFromStorage() {
+            try {
+                const savedRecharge = localStorage.getItem(STORAGE_KEYS.RECHARGE);
+                const savedWin = localStorage.getItem(STORAGE_KEYS.WIN);
+                const savedBalance = localStorage.getItem(STORAGE_KEYS.BALANCE);
+                const savedCount = localStorage.getItem(STORAGE_KEYS.COUNT);
+                const savedButtons = localStorage.getItem(STORAGE_KEYS.BUTTONS);
+                
+                if (savedRecharge !== null) rechargeAmount = parseFloat(savedRecharge) || 0;
+                if (savedWin !== null) winAmount = parseFloat(savedWin) || 0;
+                if (savedBalance !== null) balance = parseFloat(savedBalance) || 0;
+                if (savedCount !== null) countme = parseInt(savedCount) || 0;
+                if (savedButtons !== null) {
+                    lotteryButtons = JSON.parse(savedButtons);
+                }
+            } catch (e) {
+                console.error('加载数据失败:', e);
+            }
+        }
+        
+        // 保存数据到 LocalStorage
+        function saveToStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEYS.RECHARGE, rechargeAmount.toString());
+                localStorage.setItem(STORAGE_KEYS.WIN, winAmount.toString());
+                localStorage.setItem(STORAGE_KEYS.BALANCE, balance.toString());
+                localStorage.setItem(STORAGE_KEYS.COUNT, countme.toString());
+                localStorage.setItem(STORAGE_KEYS.BUTTONS, JSON.stringify(lotteryButtons));
+            } catch (e) {
+                console.error('保存数据失败:', e);
+            }
+        }
+        
+        // 初始化抽奖按钮
+        function initLotteryButtons() {
+            // 如果已有保存的按钮数据，直接使用
+            if (lotteryButtons.length > 0) {
+                renderLotteryGrid();
+                return;
+            }
+            
+            // 创建奖品池
+            const prizes = [];
+            for (let i = 0; i < 20; i++) prizes.push({ text: '中2元', value: 2 });
+            for (let i = 0; i < 12; i++) prizes.push({ text: '中5元', value: 5 });
+            for (let i = 0; i < 6; i++) prizes.push({ text: '中10元', value: 10 });
+            for (let i = 0; i < 2; i++) prizes.push({ text: '中20元', value: 20 });
+            for (let i = 0; i < 98; i++) prizes.push({ text: '马到成功', value: 0 });
+            
+            // 随机打乱
+            for (let i = prizes.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [prizes[i], prizes[j]] = [prizes[j], prizes[i]];
+            }
+            
+            // 创建138个按钮
+            lotteryButtons = [];
+            for (let i = 1; i <= 138; i++) {
+                lotteryButtons.push({
+                    id: i,
+                    isClicked: false,
+                    prize: prizes[i - 1].text,
+                    prizeValue: prizes[i - 1].value
+                });
+            }
+            
+            saveToStorage();
+            renderLotteryGrid();
+        }
+        
+        // 渲染抽奖网格
+        function renderLotteryGrid() {
+            const grid = document.getElementById('lotteryGrid');
+            grid.innerHTML = '';
+            
+            // 第1-34排：每排4个，共136个
+            for (let row = 0; row < 34; row++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'lottery-row';
+                
+                for (let col = 0; col < 4; col++) {
+                    const buttonId = row * 4 + col + 1;
+                    const btn = createLotteryButton(buttonId);
+                    rowDiv.appendChild(btn);
+                }
+                
+                grid.appendChild(rowDiv);
+            }
+            
+            // 第35排：2个按钮
+            const lastRow = document.createElement('div');
+            lastRow.className = 'lottery-row';
+            lastRow.appendChild(createLotteryButton(137));
+            lastRow.appendChild(createLotteryButton(138));
+            grid.appendChild(lastRow);
+        }
+        
+        // 创建单个抽奖按钮
+        function createLotteryButton(id) {
+            const button = lotteryButtons.find(b => b.id === id);
+            const btn = document.createElement('button');
+            btn.className = `btn-lottery ${button.isClicked ? 'red' : 'green'}`;
+            btn.textContent = id + '号';
+            btn.disabled = button.isClicked;
+            btn.onclick = () => handleLotteryClick(id);
+            return btn;
+        }
+        
+        // 显示密码验证弹窗（统一入口）
+        function showPasswordModal(action) {
+            currentAction = action;
+            
+            // 设置弹窗标题
+            const titles = {
+                'recharge': '充值验证',
+                'jiezhang': '结账验证',
+                'reset': '重置面板验证',
+                'clear': '清空数据验证'
+            };
+            document.getElementById('passwordVerifyTitle').textContent = titles[action] || '请输入密码';
+            
+            // 清空输入框和错误信息
+            document.getElementById('passwordVerifyInput').value = '';
+            document.getElementById('passwordVerifyError').textContent = '';
+            
+            showModal('passwordVerifyModal');
+            setTimeout(() => document.getElementById('passwordVerifyInput').focus(), 100);
+        }
+        
+        // 检查密码验证
+        function checkPasswordVerify() {
+            const pwd = document.getElementById('passwordVerifyInput').value;
+            
+            if (pwd !== PASSWORD) {
+                document.getElementById('passwordVerifyError').textContent = '密码错误';
+                return;
+            }
+            
+            // 密码正确，根据当前操作类型执行相应逻辑
+            closeModal('passwordVerifyModal');
+            
+            switch (currentAction) {
+                case 'recharge':
+                    // 打开充值金额输入弹窗
+                    document.getElementById('amountInput').value = '';
+                    document.getElementById('amountError').textContent = '';
+                    showModal('amountModal');
+                    setTimeout(() => document.getElementById('amountInput').focus(), 100);
+                    break;
+                    
+                case 'jiezhang':
+                    // 打开结账确认弹窗
+                    document.getElementById('balance2').textContent = balance.toFixed(2);
+                    showModal('jiezhangModal');
+                    break;
+                    
+                case 'reset':
+                    // 打开重置面板确认弹窗
+                    showModal('resetModal');
+                    break;
+                    
+                case 'clear':
+                    // 打开清空数据确认弹窗
+                    showModal('clearAllModal');
+                    break;
+            }
+            
+            currentAction = null;
+        }
+        
+        // 确认充值
+        function confirmRecharge() {
+            const amount = parseFloat(document.getElementById('amountInput').value);
+            if (isNaN(amount) || amount <= 0) {
+                document.getElementById('amountError').textContent = '请输入有效的金额';
+                return;
+            }
+             winAmount = 0;
+             countme = 0;
+            rechargeAmount = amount;
+            balance += amount;
+            updateDisplay();
+            saveToStorage();
+            closeModal('amountModal');
+        }
+        
+        // 确认结账
+        function confirmJiezhang() {
+            rechargeAmount = 0;
+            winAmount = 0;
+            balance = 0;
+            countme = 0;
+            updateDisplay();
+            saveToStorage();
+            closeModal('jiezhangModal');
+        }
+        
+        // 处理抽奖点击
+        function handleLotteryClick(buttonId) {
+            const button = lotteryButtons.find(b => b.id === buttonId);
+            if (!button || button.isClicked) return;
+            
+            if (balance < 2) {
+                showModal('noBalanceModal');
+                return;
+            }
+            
+            selectedButtonId = buttonId;
+            document.getElementById('confirmBalance').textContent = balance.toFixed(2);
+            showModal('confirmLotteryModal');
+        }
+        
+        // 执行抽奖
+        function doLottery() {
+            if (selectedButtonId === null) return;
+            
+            const button = lotteryButtons.find(b => b.id === selectedButtonId);
+            if (!button) return;
+            
+            balance -= 2;
+            countme += 1;
+            currentResult = { text: button.prize, value: button.prizeValue };
+            
+            // 标记按钮为已点击
+            button.isClicked = true;
+            
+            // 更新显示并保存
+            updateDisplay();
+            saveToStorage();
+            renderLotteryGrid();
+            
+            closeModal('confirmLotteryModal');
+            
+            // 显示结果
+            document.getElementById('resultText').textContent = currentResult.text;
+            document.getElementById('resultBonus').textContent = currentResult.value > 0 ? `+${currentResult.value}元` : '';
+            showModal('resultModal');
+        }
+        
+        // 关闭结果弹窗
+        function closeResult() {
+            if (currentResult && currentResult.value > 0) {
+                winAmount += currentResult.value;
+                balance += currentResult.value;
+                updateDisplay();
+                saveToStorage();
+            }
+            closeModal('resultModal');
+            currentResult = null;
+            selectedButtonId = null;
+        }
+        
+        // 更新金额显示
+        function updateDisplay() {
+            document.getElementById('rechargeAmount').textContent = rechargeAmount.toFixed(2);
+            document.getElementById('winAmount').textContent = winAmount.toFixed(2);
+            document.getElementById('balance').textContent = balance.toFixed(2);
+            document.getElementById('countme').textContent = countme;
+        }
+        
+        // 确认重置面板
+        function confirmReset() {
+            // 只重置按钮，保留金额数据
+            lotteryButtons = [];
+            saveToStorage();
+            initLotteryButtons();
+            closeModal('resetModal');
+        }
+        
+        // 确认清空所有数据
+        function confirmClearAll() {
+            // 清空所有数据
+            rechargeAmount = 0;
+            winAmount = 0;
+            balance = 0;
+            countme = 0;
+            lotteryButtons = [];
+            
+            // 清除 LocalStorage
+            Object.values(STORAGE_KEYS).forEach(key => {
+                localStorage.removeItem(key);
+            });
+            
+            updateDisplay();
+            initLotteryButtons();
+            closeModal('clearAllModal');
+        }
+        
+        // 弹窗控制
+        function showModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+        
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+        
+        // 点击遮罩关闭弹窗
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay && 
+                    overlay.id !== 'resultModal' && 
+                    overlay.id !== 'noBalanceModal' &&
+                    overlay.id !== 'resetModal' &&
+                    overlay.id !== 'clearAllModal' &&
+                    overlay.id !== 'jiezhangModal') {
+                    closeModal(overlay.id);
+                }
+            });
+        });
+        
+        // 初始化
+        function init() {
+            loadFromStorage();
+            updateDisplay();
+            initLotteryButtons();
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
